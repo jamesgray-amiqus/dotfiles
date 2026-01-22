@@ -26,7 +26,7 @@ dotfiles_usage() {
   echo
   # :command.usage_commands
   printf "%s\n" "Commands:"
-  printf "  %s   clone github repositories\n" "clone    "
+  printf "  %s   setup and clone github repositories\n" "github   "
   printf "  %s   provision\n" "provision"
   echo
 
@@ -43,39 +43,16 @@ dotfiles_usage() {
     printf "    Show version number\n"
     echo
 
-    # :command.usage_environment_variables
-    printf "%s\n" "Environment Variables:"
-
-    # :environment_variable.usage
-    printf "  %s\n" "GIT_USER_NAME"
-    printf "    Set your GIT username\n"
-    echo
-
-    # :environment_variable.usage
-    printf "  %s\n" "GIT_USER_EMAIL"
-    printf "    Set your Git email\n"
-    echo
-
-    # :environment_variable.usage
-    printf "  %s\n" "GITHUB_USER_NAME"
-    printf "    Set your GITHUB username\n"
-    echo
-
-    # :environment_variable.usage
-    printf "  %s\n" "GITHUB_ORG"
-    printf "    Set your GITHUB_ORG username\n"
-    echo
-
   fi
 }
 
 # :command.usage
-dotfiles_clone_usage() {
-  printf "dotfiles clone - clone github repositories\n\n"
+dotfiles_github_usage() {
+  printf "dotfiles github - setup and clone github repositories\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  dotfiles clone\n"
-  printf "  dotfiles clone --help | -h\n"
+  printf "  dotfiles github\n"
+  printf "  dotfiles github --help | -h\n"
   echo
 
   # :command.long_usage
@@ -180,9 +157,9 @@ inspect_args() {
 
 # :command.command_functions
 # :command.function
-dotfiles_clone_command() {
+dotfiles_github_command() {
 
-  # src/clone_command.sh
+  # src/github_command.sh
   if [ -f "$HOME/.envrc" ]; then
       source "$HOME/.envrc"
   else
@@ -526,23 +503,16 @@ parse_requirements() {
     esac
   done
 
-  # :command.environment_variables_filter
-
-  env_var_names+=("GIT_USER_NAME")
-  env_var_names+=("GIT_USER_EMAIL")
-  env_var_names+=("GITHUB_USER_NAME")
-  env_var_names+=("GITHUB_ORG")
-
   # :command.command_filter
   action=${1:-}
 
   case $action in
     -*) ;;
 
-    clone)
-      action="clone"
+    github)
+      action="github"
       shift
-      dotfiles_clone_parse_requirements "$@"
+      dotfiles_github_parse_requirements "$@"
       shift $#
       ;;
 
@@ -590,7 +560,7 @@ parse_requirements() {
 }
 
 # :command.parse_requirements
-dotfiles_clone_parse_requirements() {
+dotfiles_github_parse_requirements() {
   local key
 
   # :command.fixed_flags_filter
@@ -599,7 +569,7 @@ dotfiles_clone_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        dotfiles_clone_usage
+        dotfiles_github_usage
         exit
         ;;
 
@@ -611,7 +581,7 @@ dotfiles_clone_parse_requirements() {
   done
 
   # :command.command_filter
-  action="clone"
+  action="github"
 
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
@@ -703,7 +673,7 @@ run() {
   parse_requirements "${input[@]}"
 
   case "$action" in
-    "clone") dotfiles_clone_command ;;
+    "github") dotfiles_github_command ;;
     "provision") dotfiles_provision_command ;;
   esac
 }
