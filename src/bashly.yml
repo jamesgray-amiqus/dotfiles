@@ -1,0 +1,20 @@
+name: dotfiles
+help: dotfiles
+version: 0.1.0
+
+environment_variables:
+  - name: GIT_USER_NAME
+    help: Set your GIT username
+  - name: GIT_USER_EMAIL
+    help: Set your Git email
+  - name: GITHUB_USER_NAME
+    help: Set your GITHUB username
+  - name: GITHUB_ORG
+    help: Set your GITHUB_ORG username
+
+commands:
+  - name: clone
+    help: clone github repositories
+
+  - name: provision
+    help: provision
