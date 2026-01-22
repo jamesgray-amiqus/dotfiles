@@ -69,12 +69,12 @@ install_packages() {
     log "Updating Homebrew"
     brew update || true
 
-    local cli=(git gnupg gh starship fzf htop wget curl jq bat ripgrep fd tree tldr httpie tmux watch ncdu git-delta the_silver_searcher pyenv tfenv zoxide)
+    local cli=(git gnupg gh starship fzf htop wget curl jq bat ripgrep fd tree tldr httpie tmux watch ncdu git-delta the_silver_searcher pyenv tfenv zoxide gum awscli)
     for pkg in "${cli[@]}"; do
         brew_install_formula "$pkg"
     done
 
-    local apps=(docker iterm2 firefox clipy flux 1password-cli tomatobar)
+    local apps=(docker iterm2 firefox clipy flux 1password-cli tomatobar session-manager-plugin)
     for app in "${apps[@]}"; do
         brew_install_cask "$app"
     done

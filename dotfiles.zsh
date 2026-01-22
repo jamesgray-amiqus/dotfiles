@@ -55,3 +55,9 @@ setopt extended_glob
 alias rm='rm -i'
 alias mv='mv -i'
 alias cp='cp -i'
+
+alias c="pbcopy"
+alias p="pbpaste"
+
+alias meminfo="top -l 1 | head -n 20"
+alias ip="ipconfig getifaddr en0"
