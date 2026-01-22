@@ -75,6 +75,11 @@ EOF
     git config --global gpg.program gpg
     log "Using GPG key: $key_id"
 
+    git config --global alias.co checkout
+    git config --global alias.br branch
+    git config --global alias.ci commit
+    git config --global alias.st status
+
     if gh auth status >/dev/null 2>&1; then
         printf "%s\n" "$(gpg --armor --export "$key_id")" | gh gpg-key add - || true
         log "Uploaded GPG key to GitHub"

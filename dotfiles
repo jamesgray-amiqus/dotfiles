@@ -260,6 +260,11 @@ EOF
       git config --global gpg.program gpg
       log "Using GPG key: $key_id"
 
+      git config --global alias.co checkout
+      git config --global alias.br branch
+      git config --global alias.ci commit
+      git config --global alias.st status
+
       if gh auth status >/dev/null 2>&1; then
           printf "%s\n" "$(gpg --armor --export "$key_id")" | gh gpg-key add - || true
           log "Uploaded GPG key to GitHub"
@@ -418,11 +423,12 @@ EOF
   apply_ui_tweaks() {
       log "Applying macOS UI tweaks"
 
-      defaults write com.apple.dock autohide -bool true
-      defaults write com.apple.dock autohide-delay -float 0
-      defaults write com.apple.dock autohide-time-modifier -float 0.1
-      defaults write com.apple.dock mineffect -string "scale"
-      defaults write com.apple.dock launchanim -bool false
+      defaults delete com.apple.dock autohide 2>/dev/null || true
+      defaults delete com.apple.dock autohide-delay 2>/dev/null || true
+      defaults delete com.apple.dock autohide-time-modifier 2>/dev/null || true
+      defaults delete com.apple.dock mineffect 2>/dev/null || true
+      defaults delete com.apple.dock launchanim 2>/dev/null || true
+      defaults delete com.apple.dock expose-animation-duration 2>/dev/null || true
       defaults write NSGlobalDomain AppleShowAllExtensions -bool true
       defaults write com.apple.finder ShowStatusBar -bool true
       defaults write com.apple.finder ShowPathbar -bool true

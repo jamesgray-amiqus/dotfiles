@@ -109,11 +109,12 @@ EOF
 apply_ui_tweaks() {
     log "Applying macOS UI tweaks"
 
-    defaults write com.apple.dock autohide -bool true
-    defaults write com.apple.dock autohide-delay -float 0
-    defaults write com.apple.dock autohide-time-modifier -float 0.1
-    defaults write com.apple.dock mineffect -string "scale"
-    defaults write com.apple.dock launchanim -bool false
+    defaults delete com.apple.dock autohide 2>/dev/null || true
+    defaults delete com.apple.dock autohide-delay 2>/dev/null || true
+    defaults delete com.apple.dock autohide-time-modifier 2>/dev/null || true
+    defaults delete com.apple.dock mineffect 2>/dev/null || true
+    defaults delete com.apple.dock launchanim 2>/dev/null || true
+    defaults delete com.apple.dock expose-animation-duration 2>/dev/null || true
     defaults write NSGlobalDomain AppleShowAllExtensions -bool true
     defaults write com.apple.finder ShowStatusBar -bool true
     defaults write com.apple.finder ShowPathbar -bool true
