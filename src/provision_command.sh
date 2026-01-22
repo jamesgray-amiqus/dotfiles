@@ -1,5 +1,5 @@
 if [ -f "$HOME/.envrc" ]; then
-    # shellcheck disable=SC1090
+    cp ./.envrc.sample "$HOME"
     source "$HOME/.envrc"
 else
     echo "ERROR: ~/.envrc not found. Please create it with your env variables."

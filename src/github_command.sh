@@ -1,6 +1,7 @@
 if [ -f "$HOME/.envrc" ]; then
     source "$HOME/.envrc"
 else
+    cp ./.envrc.sample "$HOME"
     echo "ERROR: ~/.envrc not found. Please create it with your env variables."
     exit 1
 fi
