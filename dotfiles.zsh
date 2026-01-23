@@ -164,6 +164,12 @@ r() {
   fi
 }
 
+pr() {
+    local branch="${1:-$(git symbolic-ref --short HEAD)}"
+    local default_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
+    gh pr create --web --base "$default_branch" --head "$branch"
+}
+
 # Optional: bind Ctrl-P to fuzzy project jump
 fzf-project-jump() {
   local dir=$(cat "$PROJECTS_CACHE" | fzf --preview "ls -l {}" --prompt="Project> ")
