@@ -1,5 +1,10 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+# =================
+# Load environment
+# =================
 if [ -f "$HOME/.envrc" ]; then
-    cp ./.envrc.sample "$HOME"
     source "$HOME/.envrc"
 else
     echo "ERROR: ~/.envrc not found. Please create it with your env variables."
@@ -7,7 +12,16 @@ else
 fi
 
 : "${PROJECTS_DIR:?PROJECTS_DIR must be set in ~/.envrc}"
+: "${RUBY_VERSION:?RUBY_VERSION must be set in ~/.envrc}"
+: "${TF_VERSION:?TF_VERSION must be set in ~/.envrc}"
+: "${GITHUB_USERNAME:?GITHUB_USERNAME must be set in ~/.envrc}"
+: "${GITHUB_ORG:?GITHUB_ORG must be set in ~/.envrc}"
 
+mkdir -p "$PROJECTS_DIR"
+
+# =================
+# Helpers
+# =================
 log() { printf "\n==> %s\n" "$*"; }
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 try() { "$@" || log "Non-fatal failure: $*"; }
@@ -20,6 +34,9 @@ brew_shellenv() {
     fi
 }
 
+# =================
+# Homebrew
+# =================
 ensure_homebrew() {
     if have_cmd brew; then
         log "Homebrew already installed"
@@ -53,43 +70,38 @@ brew_install_cask() {
     fi
 }
 
-jamf_self_elevate() {
-    [ "${SKIP_JAMF_ELEVATE:-0}" = "1" ] && return
-    local jamf_bin=""
-    [ -x "/usr/local/bin/jamf" ] && jamf_bin="/usr/local/bin/jamf"
-    [ -x "/usr/bin/jamf" ] && jamf_bin="/usr/bin/jamf"
-    [ -z "$jamf_bin" ] && return
-    [ -z "${JAMF_ELEVATE_TRIGGER:-}" ] && return
-    log "Attempting Jamf elevation"
-    sudo "$jamf_bin" policy -event "$JAMF_ELEVATE_TRIGGER" || true
-}
-
-
+# =================
+# Packages / Apps
+# =================
 install_packages() {
     log "Updating Homebrew"
     brew update || true
 
-    local cli=(git gnupg gh starship fzf htop wget curl jq bat ripgrep fd tree tldr httpie tmux watch ncdu git-delta the_silver_searcher pyenv tfenv zoxide gum awscli)
-    for pkg in "${cli[@]}"; do
-        brew_install_formula "$pkg"
-    done
+    local cli=(
+        awscli bat croc curl fd fzf gh git git-branchless git-delta gnupg gum
+        htop httpie jq ncdu pyenv ripgrep shellcheck starship tfenv
+        the_silver_searcher tig tldr tmux tree watch wget zoxide
+    )
+    for pkg in "${cli[@]}"; do brew_install_formula "$pkg"; done
 
-    local apps=(docker iterm2 firefox clipy flux 1password-cli tomatobar session-manager-plugin)
-    for app in "${apps[@]}"; do
-        brew_install_cask "$app"
-    done
+    local apps=(
+        1password-cli clipy docker firefox flux iterm2
+        session-manager-plugin tomatobar
+    )
+    for app in "${apps[@]}"; do brew_install_cask "$app"; done
 
+    # FluxCD CLI
     if ! brew list --formula flux >/dev/null 2>&1; then
         log "Installing FluxCD CLI"
         try brew tap fluxcd/tap
         try brew install fluxcd/tap/flux
     fi
 
+    # Nerd Fonts
     local fonts=(font-fira-code-nerd-font font-jetbrains-mono-nerd-font font-hack-nerd-font)
-    for f in "${fonts[@]}"; do
-        brew_install_cask "$f"
-    done
+    for f in "${fonts[@]}"; do brew_install_cask "$f"; done
 
+    # fzf shell integration
     local fzf_install_path
     fzf_install_path="$(brew --prefix)/opt/fzf/install"
     [ -x "$fzf_install_path" ] && yes | "$fzf_install_path" --all
@@ -98,88 +110,107 @@ install_packages() {
     brew cleanup || true
 }
 
+# =================
+# Zsh + env
+# =================
 configure_zsh() {
     log "Configuring Zsh environment"
     touch "$HOME/.zshrc"
     cat <<EOF > "$HOME/.zshrc"
+# Project dotfiles
 source "$PROJECTS_DIR/dotfiles/dotfiles.zsh"
+
+# Homebrew
+if [ -x "/opt/homebrew/bin/brew" ]; then eval "\$($(brew --prefix)/bin/brew shellenv)"; fi
+
+# pyenv
+export PYENV_ROOT="\$HOME/.pyenv"
+export PATH="\$PYENV_ROOT/bin:\$PATH"
+eval "\$(pyenv init --path)"
+
+# tfenv
+export PATH="\$HOME/.tfenv/bin:\$PATH"
+
+# starship
+eval "\$(starship init zsh)"
+
+# fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# direnv
+eval "\$(direnv hook zsh)"
+
+# Projects directory
+export PROJECTS_DIR="\$PROJECTS_DIR"
+
+# Infinite history
+HISTFILE="\$HOME/.zsh_history"
+HISTSIZE=1000000
+SAVEHIST=1000000
+setopt append_history share_history
 EOF
 }
 
-apply_ui_tweaks() {
-    log "Applying macOS UI tweaks"
-
-    defaults delete com.apple.dock autohide 2>/dev/null || true
-    defaults delete com.apple.dock autohide-delay 2>/dev/null || true
-    defaults delete com.apple.dock autohide-time-modifier 2>/dev/null || true
-    defaults delete com.apple.dock mineffect 2>/dev/null || true
-    defaults delete com.apple.dock launchanim 2>/dev/null || true
-    defaults delete com.apple.dock expose-animation-duration 2>/dev/null || true
-    defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-    defaults write com.apple.finder ShowStatusBar -bool true
-    defaults write com.apple.finder ShowPathbar -bool true
-    killall Dock Finder
-
-    defaults write NSGlobalDomain KeyRepeat -int "${KEY_REPEAT:-1}"
-    defaults write NSGlobalDomain InitialKeyRepeat -int "${INITIAL_KEY_REPEAT:-10}"
-
-    sudo defaults write com.apple.universalaccess reduceMotion -bool true || true
-    sudo defaults write com.apple.universalaccess reduceTransparency -bool true || true
-
-    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
-    defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false
-    defaults write NSGlobalDomain com.apple.mouse.scaling -float 3.0
-
-    mkdir -p "$HOME/Screenshots"
-    defaults write com.apple.screencapture location -string "$HOME/Screenshots"
-    defaults write com.apple.screencapture disable-shadow -bool true
-    killall SystemUIServer
-
-    sudo mdutil -i on / >/dev/null 2>&1 || true
-    sudo mdutil -E / >/dev/null 2>&1 || true
-}
-
+# =================
+# iTerm2 config from exported JSON
+# =================
 configure_iterm2() {
-    log "Configuring iTerm2"
+    log "Configuring iTerm2 from exported JSON"
 
-    local plist="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
-    [ ! -f "$plist" ] && { open -a iTerm; sleep 5; killall iTerm >/dev/null 2>&1; }
-
-    defaults write com.googlecode.iterm2 "UseDarkColorPalette" -bool false
-    defaults write com.googlecode.iterm2 "SilenceBell" -bool true
-    defaults write com.googlecode.iterm2 "UnlimitedScrollback" -bool true
-    defaults write com.googlecode.iterm2 "ScrollbackLines" -int 1000000
-
-    local default_uuid
-    default_uuid=$(defaults read com.googlecode.iterm2 "Default Bookmark Guid" 2>/dev/null)
-    [ -n "$default_uuid" ] && /usr/libexec/PlistBuddy -c "Set :'New Bookmarks':0:'Normal Font' 'Fira Code Nerd Font 14'" "$plist" 2>/dev/null || true
+    local json_file="$PROJECTS_DIR/dotfiles/iterm2_profile.json"
+    if [ -f "$json_file" ]; then
+        log "Importing iTerm2 profile from JSON"
+        open "$json_file"  # iTerm will import it automatically
+        sleep 3
+    else
+        log "No exported iTerm2 JSON found, skipping"
+    fi
 }
 
-set_default_apps() {
-    log "Setting default terminal and browser"
-    have_cmd duti || brew install duti
-    duti -s com.googlecode.iterm2 public.shell-script all
-    duti -s com.google.Chrome http
-    duti -s com.google.Chrome https
-    duti -s com.google.Chrome public.html
+# =================
+# GitHub CLI + repos
+# =================
+configure_gh_cli() {
+    log "Configuring GitHub CLI"
+    if ! gh auth status >/dev/null 2>&1; then
+        gh auth login --web
+    fi
+    gh config set git_protocol ssh
+    gh config set editor zed
+
+    # Clone all repos for user/org
+    (
+        cd "$PROJECTS_DIR"
+        for repo in $(gh repo list "$GITHUB_USERNAME" --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'); do
+            log "Cloning $repo..."
+            gh repo clone "$repo" || log "Already exists or failed: $repo"
+        done
+        for repo in $(gh repo list "$GITHUB_ORG" --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'); do
+            log "Cloning $repo..."
+            gh repo clone "$repo" || log "Already exists or failed: $repo"
+        done
+    )
 }
 
-install_rbenv() { rbenv install 3.4.8 && rbenv global 3.4.8 || true; }
-install_tfenv() { tfenv install 1.14.3 && tfenv use 1.14.3 || true; }
+# =================
+# Ruby / Terraform
+# =================
+install_rbenv() { rbenv install "$RUBY_VERSION" && rbenv global "$RUBY_VERSION" || true; }
+install_tfenv() { tfenv install "$TF_VERSION" && tfenv use "$TF_VERSION" || true; }
 
+# =================
+# Main
+# =================
 main() {
     log "Starting macOS developer provisioning"
-    jamf_self_elevate
     ensure_homebrew
     install_packages
     configure_zsh
-    apply_ui_tweaks
     configure_iterm2
-    set_default_apps
+    configure_gh_cli
     install_rbenv
     install_tfenv
-    log "Provisioning complete. Some changes may require logout/login."
+    log "Provisioning complete. Open a new terminal tab to apply Zsh & iTerm2 settings."
 }
 
 main "$@"

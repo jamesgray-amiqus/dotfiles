@@ -1,9 +1,11 @@
+export KEY_REPEAT=1
+export GITHUB_ORG=""
+export TF_VERSION=""
+export RUBY_VERSION=""
 export GIT_USER_NAME=""
 export GIT_USER_EMAIL=""
 export GITHUB_USERNAME=""
-export GITHUB_ORG=""
-export KEY_REPEAT=1
+export SKIP_JAMF_ELEVATE=0
 export INITIAL_KEY_REPEAT=10
 export JAMF_ELEVATE_TRIGGER=""
-export SKIP_JAMF_ELEVATE=0
 export PROJECTS_DIR="$HOME/Projects"
