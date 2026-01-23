@@ -116,9 +116,26 @@ setopt extended_glob
 # Git helper functions
 # -----------------------------------------
 gb() {
-  local branch
-  branch=$(git branch --all | grep -v HEAD | sed 's#remotes/##' | fzf) || return
-  git checkout "$branch"
+  # Fetch latest remotes
+  git fetch --all --prune
+
+  # List local + remote branches, remove duplicates
+  local branch selected
+  branch=$(git for-each-ref --format='%(refname:short)' refs/heads/ \
+          && git for-each-ref --format='%(refname:short)' refs/remotes/origin/ \
+             | sed 's#^origin/##' \
+             | grep -v -F -f <(git for-each-ref --format='%(refname:short)' refs/heads/)) || return
+
+  # Let user select with fzf
+  selected=$(echo "$branch" | fzf --prompt="Branch> ") || return
+  [ -z "$selected" ] && return
+
+  # Switch to local branch if exists, else track remote
+  if git show-ref --verify --quiet "refs/heads/$selected"; then
+    git switch "$selected"
+  else
+    git switch -c "$selected" --track "origin/$selected"
+  fi
 }
 
 scf() {
