@@ -1,9 +1,30 @@
+# -----------------------------------------
+# Homebrew
+# -----------------------------------------
+if [ -x /opt/homebrew/bin/brew ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
 
-if [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"; elif [ -x /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; fi
+# -----------------------------------------
+# Prompt & language tools
+# -----------------------------------------
 eval "$(starship init zsh)"
 eval "$(pyenv init --path)"
+eval "$(zoxide init zsh --hook prompt)"   # use prompt hook, not 'complete'
 eval "$(zoxide init zsh)"
 
+# -----------------------------------------
+# Zsh completions
+# -----------------------------------------
+autoload -Uz compinit
+compinit
+zstyle ':compinstall' auto-update no
+
+# -----------------------------------------
+# Environment variables
+# -----------------------------------------
 export STARSHIP_PROMPT_ORDER=(
   "username"
   "hostname"
@@ -18,33 +39,51 @@ export STARSHIP_PROMPT_ORDER=(
   "character"
 )
 
-if type compdef &>/dev/null; then
-    eval "$(zoxide init zsh --hook complete)"
-fi
-
-export FZF_CTRL_R_OPTS="--preview 'echo {}'"
 export PATH="$HOME/.tfenv/bin:$PATH"
 export PATH="$PYENV_ROOT/bin:$PATH"
-export PROJECTS_DIR=$HOME/Projects
 export PYENV_ROOT="$HOME/.pyenv"
 export TMPDIR="$HOME/.tmp"
+export PROJECTS_DIR=~/Projects
+export PROJECTS_CACHE=~/.cache/projects_list.txt
 
-source ~/.fzf.zsh
+mkdir -p "$HOME/.tmp"
+mkdir -p ~/.cache
 
+# -----------------------------------------
+# Source fzf if installed
+# -----------------------------------------
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# -----------------------------------------
+# Environment file
+# -----------------------------------------
+if [ -f "$HOME/.envrc" ]; then
+    source "$HOME/.envrc"
+else
+    cp ./.envrc.sample "$HOME"
+    echo "ERROR: ~/.envrc not found. Please create it with your env variables."
+    exit 1
+fi
+
+# -----------------------------------------
+# Aliases
+# -----------------------------------------
 alias ....="cd ../../.."
 alias ...="cd ../.."
 alias ..="cd .."
-
 alias bashly='docker run --rm -it --user $(id -u):$(id -g) --volume "$PWD:/app" dannyben/bashly'
 alias bg='bashly generate'
 alias c="pbcopy"
 alias cat='bat'
+alias c='bat'
+alias d='bat -p'
 alias cls="clear"
 alias cp='cp -i'
 alias g='git'
 alias ga='git add .'
 alias gbf='git branch | fzf --preview "git log -n 5 --color=always {}"'
 alias gcd='git checkout'
+alias gd='git diff'
 alias gp='git push'
 alias gpr='git push --rebase'
 alias gs='git status'
@@ -63,6 +102,9 @@ alias superlint='docker run --rm \
   -v "$(pwd):/tmp/lint" \
   github/super-linter:latest'
 
+# -----------------------------------------
+# History settings
+# -----------------------------------------
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=1000000
 SAVEHIST=1000000
@@ -70,8 +112,9 @@ setopt append_history
 setopt share_history
 setopt extended_glob
 
-mkdir -p "$HOME/.tmp"
-
+# -----------------------------------------
+# Git helper functions
+# -----------------------------------------
 gb() {
   local branch
   branch=$(git branch --all | grep -v HEAD | sed 's#remotes/##' | fzf) || return
@@ -89,3 +132,60 @@ sc-changed() {
     | grep '\.sh$' \
     | xargs -r shellcheck
 }
+
+# -----------------------------------------
+# Projects jump function (fuzzy with fzf)
+# -----------------------------------------
+update_projects_cache() {
+  find "$PROJECTS_DIR" -maxdepth 2 -type d > "$PROJECTS_CACHE"
+}
+
+# Initialize cache if missing
+[ ! -f "$PROJECTS_CACHE" ] && update_projects_cache
+
+r() {
+  if [ -z "$1" ]; then
+    # No argument: just open fuzzy menu
+    local dir
+    dir=$(cat "$PROJECTS_CACHE" | fzf --preview "ls -l {}" --prompt="Project> ")
+    [ -n "$dir" ] && cd "$dir"
+    return
+  fi
+
+  # Argument provided: try exact match first, then fuzzy
+  local dir
+  dir=$(grep -i "$1" "$PROJECTS_CACHE" | head -n 1)
+  if [ -n "$dir" ]; then
+    cd "$dir" || return
+  else
+    # fallback to fzf fuzzy search if no exact match
+    dir=$(grep -i "$1" "$PROJECTS_CACHE" | fzf --preview "ls -l {}" --prompt="Project> ")
+    [ -n "$dir" ] && cd "$dir"
+  fi
+}
+
+# Optional: bind Ctrl-P to fuzzy project jump
+fzf-project-jump() {
+  local dir=$(cat "$PROJECTS_CACHE" | fzf --preview "ls -l {}" --prompt="Project> ")
+  [ -n "$dir" ] && cd "$dir"
+}
+bindkey '^P' fzf-project-jump
+
+_r_completions() {
+  local -a projects
+  local cur
+
+  cur="${words[CURRENT]}"
+  # extract last directory name from cache
+  projects=($(awk -F/ '{print $NF}' "$PROJECTS_CACHE"))
+
+  # Use compadd to provide completions
+  compadd -W projects -- "$cur"
+}
+
+# Attach tab-completion to r
+compdef _r_completions r
+
+# -----------------------------------------
+# End of config
+# -----------------------------------------

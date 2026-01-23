@@ -1,3 +1,6 @@
+# ----------------------------------------
+# Source env and check required variables
+# ----------------------------------------
 if [ -f "$HOME/.envrc" ]; then
     source "$HOME/.envrc"
 else
@@ -16,6 +19,9 @@ mkdir -p "$PROJECTS_DIR"
 
 log() { printf "\n==> %s\n" "$*"; }
 
+# ----------------------------------------
+# GitHub CLI configuration
+# ----------------------------------------
 configure_gh_cli() {
     log "Configuring GitHub CLI..."
     if gh auth status >/dev/null 2>&1; then
@@ -29,6 +35,9 @@ configure_gh_cli() {
     gh config set editor "zed"
 }
 
+# ----------------------------------------
+# GitHub SSH key setup
+# ----------------------------------------
 configure_github_ssh() {
     log "Configuring GitHub SSH key..."
     local ssh_file="$HOME/.ssh/id_github"
@@ -43,6 +52,9 @@ configure_github_ssh() {
     fi
 }
 
+# ----------------------------------------
+# Configure GPG for signed commits
+# ----------------------------------------
 configure_git_gpg() {
     log "Configuring GPG for signed commits..."
     have_gpg=$(command -v gpg || true)
@@ -91,6 +103,53 @@ EOF
     fi
 }
 
+update_repo() {
+    local repo_dir="$1"
+    [ -d "$repo_dir/.git" ] || return
+
+    log "Updating $(basename "$repo_dir")..."
+    pushd "$repo_dir" >/dev/null || return
+
+    # Fetch all remotes
+    git fetch --all --prune
+
+    # Determine default branch (main or master)
+    default_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
+
+    # Switch to default branch and pull latest changes
+    git checkout "$default_branch"
+    git pull origin "$default_branch"
+
+    popd >/dev/null || return
+}
+
+# ----------------------------------------
+# Pull all branches for a given repository
+# ----------------------------------------
+pull_all_branches() {
+    local repo_dir="$1"
+    [ -d "$repo_dir/.git" ] || return
+
+    log "Pulling all branches for $(basename "$repo_dir")..."
+    pushd "$repo_dir" >/dev/null || return
+
+    git fetch --all
+
+    # Loop over remote branches
+    for branch in $(git branch -r | grep -v '\->' | sed 's|origin/||'); do
+        git branch --track "$branch" "origin/$branch" 2>/dev/null || true
+        git checkout "$branch"
+        git pull
+    done
+
+    # Return to previous directory
+    git checkout main 2>/dev/null || git checkout master 2>/dev/null || true
+    popd >/dev/null || return
+}
+
+# ----------------------------------------
+# Clone GitHub repos and pull all branches
+# ----------------------------------------
 clone_github_repos() {
     log "Cloning repositories into $PROJECTS_DIR..."
 
@@ -98,13 +157,17 @@ clone_github_repos() {
         local owner="$1"
         local repos
         repos=$(gh repo list "$owner" --limit 1000 --json nameWithOwner -q '.[].nameWithOwner')
+
         for repo in $repos; do
-            log "Cloning $repo..."
+            log "Processing $repo..."
             local dir="$PROJECTS_DIR/$(basename "$repo")"
+
             if [ -d "$dir/.git" ]; then
-                log "Already cloned: $repo"
+                log "Already cloned — updating default branch"
+                update_repo "$dir"
             else
-                gh repo clone "$repo" "$dir" || log "Failed to clone: $repo"
+                gh repo clone "$repo" "$dir" || { log "Failed to clone: $repo"; continue; }
+                update_repo "$dir"
             fi
         done
     }
@@ -113,6 +176,9 @@ clone_github_repos() {
     clone_repos_from "$GITHUB_ORG"
 }
 
+# ----------------------------------------
+# Main
+# ----------------------------------------
 main() {
     log "Starting GitHub setup + repo cloning"
     configure_gh_cli
