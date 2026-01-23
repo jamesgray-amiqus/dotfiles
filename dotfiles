@@ -484,7 +484,7 @@ fi
 EOF
 
       cat <<EOF > "$HOME/.zshrc"
-source "$PROJECTS_DIR/dotfiles/dotfiles.zsh"
+source "$PROJECTS_DIR/$GITHUB_USERNAME/dotfiles/dotfiles.zsh"
 EOF
   }
 

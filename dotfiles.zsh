@@ -85,7 +85,7 @@ alias gbf='git branch | fzf --preview "git log -n 5 --color=always {}"'
 alias gcd='git checkout'
 alias gd='git diff'
 alias gp='git push'
-alias gpr='git push --rebase'
+alias gpr='git pull --rebase'
 alias gs='git status'
 alias ip="ipconfig getifaddr en0"
 alias la="ls -AhG"
