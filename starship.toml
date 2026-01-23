@@ -1,0 +1,56 @@
+# ~/.config/starship.toml
+
+# Current directory only
+[directory]
+style = "bold green"
+read_only = ""  # disable read-only indicator
+
+# Git branch with status symbols
+[git_branch]
+symbol = " "
+style = "bold yellow"
+
+[git_status]
+disabled = false
+style = "bold red"
+
+# Disable all other modules
+[package]
+disabled = true
+
+[rust]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[python]
+disabled = true
+
+[time]
+disabled = true
+
+[hostname]
+disabled = true
+
+[jobs]
+disabled = true
+
+[ruby]
+disabled = true
+[dart]
+disabled = true
+[elixir]
+disabled = true
+[golang]
+disabled = true
+[php]
+disabled = true
+[dotnet]
+disabled = true
+
+# Prompt character (squirrel) and single-line prompt
+[character]
+success_symbol = "🐿️ ❯"
+error_symbol   = "🐿️ ❯"
+vicmd_symbol   = "🐿️ ❯"

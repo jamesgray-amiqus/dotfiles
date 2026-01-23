@@ -25,20 +25,6 @@ zstyle ':compinstall' auto-update no
 # -----------------------------------------
 # Environment variables
 # -----------------------------------------
-export STARSHIP_PROMPT_ORDER=(
-  "username"
-  "hostname"
-  "directory"
-  "git_branch"
-  "git_state"
-  "git_status"
-  "cmd_duration"
-  "line_break"
-  "jobs"
-  "time"
-  "character"
-)
-
 export PATH="$HOME/.tfenv/bin:$PATH"
 export PATH="$PYENV_ROOT/bin:$PATH"
 export PYENV_ROOT="$HOME/.pyenv"
@@ -86,6 +72,7 @@ alias gcd='git checkout'
 alias gd='git diff'
 alias gp='git push'
 alias gpr='git pull --rebase'
+alias gpt='git push --tags'
 alias gs='git status'
 alias ip="ipconfig getifaddr en0"
 alias la="ls -AhG"
