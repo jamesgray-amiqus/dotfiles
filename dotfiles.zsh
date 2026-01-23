@@ -18,6 +18,10 @@ export STARSHIP_PROMPT_ORDER=(
   "character"
 )
 
+if type compdef &>/dev/null; then
+    eval "$(zoxide init zsh --hook complete)"
+fi
+
 export FZF_CTRL_R_OPTS="--preview 'echo {}'"
 export PATH="$HOME/.tfenv/bin:$PATH"
 export PATH="$PYENV_ROOT/bin:$PATH"
@@ -32,6 +36,7 @@ alias ...="cd ../.."
 alias ..="cd .."
 
 alias bashly='docker run --rm -it --user $(id -u):$(id -g) --volume "$PWD:/app" dannyben/bashly'
+alias bg='bashly generate'
 alias c="pbcopy"
 alias cat='bat'
 alias cls="clear"

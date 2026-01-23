@@ -409,39 +409,16 @@ dotfiles_provision_command() {
   # =================
   configure_zsh() {
       log "Configuring Zsh environment"
-      touch "$HOME/.zshrc"
+      cat <<EOF > "$HOME/.zprofile"
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+if [ -f "$HOME/.zshrc" ]; then
+  source "$HOME/.zshrc"
+fi
+EOF
+
       cat <<EOF > "$HOME/.zshrc"
-# Project dotfiles
 source "$PROJECTS_DIR/dotfiles/dotfiles.zsh"
-
-# Homebrew
-if [ -x "/opt/homebrew/bin/brew" ]; then eval "\$($(brew --prefix)/bin/brew shellenv)"; fi
-
-# pyenv
-export PYENV_ROOT="\$HOME/.pyenv"
-export PATH="\$PYENV_ROOT/bin:\$PATH"
-eval "\$(pyenv init --path)"
-
-# tfenv
-export PATH="\$HOME/.tfenv/bin:\$PATH"
-
-# starship
-eval "\$(starship init zsh)"
-
-# fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# direnv
-eval "\$(direnv hook zsh)"
-
-# Projects directory
-export PROJECTS_DIR="\$PROJECTS_DIR"
-
-# Infinite history
-HISTFILE="\$HOME/.zsh_history"
-HISTSIZE=1000000
-SAVEHIST=1000000
-setopt append_history share_history
 EOF
   }
 
