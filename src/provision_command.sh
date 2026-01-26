@@ -77,8 +77,11 @@ install_packages() {
     log "Updating Homebrew"
     brew update || true
 
+    log "Upgrading Homebrew"
+    brew upgrade || true
+
     local cli=(
-        ack awscli bat croc curl espanso fd fzf gh git git-branchless git-delta git-extras gnupg gum
+        ack awscli bat ccal croc curl espanso fd fzf gh git git-branchless git-delta git-extras gnupg gum
         htop httpie jq ncdu lazygit pyenv ripgrep shellcheck starship tfenv
         the_silver_searcher tig tldr tmux tree watch wget zoxide
     )
