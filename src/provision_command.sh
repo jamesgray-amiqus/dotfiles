@@ -83,15 +83,54 @@ install_packages() {
   brew upgrade || true
 
   local cli=(
-    ack awscli bat ccal croc curl espanso fd fzf gh git git-branchless git-delta git-extras gnupg gum
-    htop httpie jq ncdu nvm lazygit pyenv ripgrep shellcheck starship tfenv
-    the_silver_searcher tig tldr tmux tree watch wget yamlfmt zoxide
+    ack
+    awscli
+    bat
+    ccal
+    croc
+    curl
+    espanso
+    fd
+    fzf
+    gh
+    git
+    git-branchless
+    git-delta
+    git-extras
+    gnupg
+    gum
+    htop
+    httpie
+    jq
+    lazygit
+    ncdu
+    nvm
+    pyenv
+    ripgrep
+    shellcheck
+    starship
+    tfenv
+    the_silver_searcher
+    tig
+    tldr
+    tmux
+    tree
+    watch
+    wget
+    yamlfmt
+    zoxide
   )
   for pkg in "${cli[@]}"; do brew_install_formula "$pkg"; done
 
   local apps=(
-    1password-cli clipy docker firefox flux iterm2
-    session-manager-plugin tomatobar
+    1password-cli
+    clipy
+    docker
+    firefox
+    flux
+    iterm2
+    session-manager-plugin
+    tomatobar
   )
   for app in "${apps[@]}"; do brew_install_cask "$app"; done
 
@@ -150,35 +189,10 @@ configure_iterm2() {
 }
 
 # =================
-# GitHub CLI + repos
-# =================
-configure_gh_cli() {
-  log "Configuring GitHub CLI"
-  if ! gh auth status >/dev/null 2>&1; then
-    gh auth login --web
-  fi
-  gh config set git_protocol ssh
-  gh config set editor zed
-
-  # Clone all repos for user/org
-  (
-    cd "$PROJECTS_DIR"
-    for repo in $(gh repo list "$GITHUB_USERNAME" --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'); do
-      log "Cloning $repo..."
-      gh repo clone "$repo" || log "Already exists or failed: $repo"
-    done
-    for repo in $(gh repo list "$GITHUB_ORG" --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'); do
-      log "Cloning $repo..."
-      gh repo clone "$repo" || log "Already exists or failed: $repo"
-    done
-  )
-}
-
-# =================
 # Ruby / Terraform / Node / Python
 # =================
 install_nvm() { nvm install "$NODE_VERSION" && nvm use "$NODE_VERSION" || true; }
-install_pyenv() { pyenv install "$PYTHON_VERSION" && pyenv global "$PYTHON_VERSION" || true
+install_pyenv() { pyenv install "$PYTHON_VERSION" && pyenv global "$PYTHON_VERSION" || true; }
 install_rbenv() { rbenv install "$RUBY_VERSION" && rbenv global "$RUBY_VERSION" || true; }
 install_tfenv() { tfenv install "$TF_VERSION" && tfenv use "$TF_VERSION" || true; }
 
@@ -191,11 +205,10 @@ main() {
   install_packages
   configure_zsh
   configure_iterm2
-  configure_gh_cli
-  install_rbenv
-  install_tfenv
   install_nvm
   install_pyenv
+  install_rbenv
+  install_tfenv
   log "Provisioning complete. Open a new terminal tab to apply Zsh & iTerm2 settings."
 }
 
