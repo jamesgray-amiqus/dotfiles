@@ -11,11 +11,13 @@ else
   exit 1
 fi
 
+: "${GITHUB_ORG:?GITHUB_ORG must be set in ~/.envrc}"
+: "${GITHUB_USERNAME:?GITHUB_USERNAME must be set in ~/.envrc}"
+: "${NODE_VERSION:?NODE_VERSION must be set in ~/.envrc}"
 : "${PROJECTS_DIR:?PROJECTS_DIR must be set in ~/.envrc}"
+: "${PYTHON_VERSION:?PYTHON_VERSION must be set in ~/.envrc}"
 : "${RUBY_VERSION:?RUBY_VERSION must be set in ~/.envrc}"
 : "${TF_VERSION:?TF_VERSION must be set in ~/.envrc}"
-: "${GITHUB_USERNAME:?GITHUB_USERNAME must be set in ~/.envrc}"
-: "${GITHUB_ORG:?GITHUB_ORG must be set in ~/.envrc}"
 
 mkdir -p "$PROJECTS_DIR"
 
@@ -82,7 +84,7 @@ install_packages() {
 
   local cli=(
     ack awscli bat ccal croc curl espanso fd fzf gh git git-branchless git-delta git-extras gnupg gum
-    htop httpie jq ncdu lazygit pyenv ripgrep shellcheck starship tfenv
+    htop httpie jq ncdu nvm lazygit pyenv ripgrep shellcheck starship tfenv
     the_silver_searcher tig tldr tmux tree watch wget yamlfmt zoxide
   )
   for pkg in "${cli[@]}"; do brew_install_formula "$pkg"; done
@@ -173,8 +175,10 @@ configure_gh_cli() {
 }
 
 # =================
-# Ruby / Terraform
+# Ruby / Terraform / Node / Python
 # =================
+install_nvm() { nvm install "$NODE_VERSION" && nvm use "$NODE_VERSION" || true; }
+install_pyenv() { pyenv install "$PYTHON_VERSION" && pyenv global "$PYTHON_VERSION" || true
 install_rbenv() { rbenv install "$RUBY_VERSION" && rbenv global "$RUBY_VERSION" || true; }
 install_tfenv() { tfenv install "$TF_VERSION" && tfenv use "$TF_VERSION" || true; }
 
@@ -190,6 +194,8 @@ main() {
   configure_gh_cli
   install_rbenv
   install_tfenv
+  install_nvm
+  install_pyenv
   log "Provisioning complete. Open a new terminal tab to apply Zsh & iTerm2 settings."
 }
 

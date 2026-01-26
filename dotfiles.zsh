@@ -27,6 +27,7 @@ zstyle ':compinstall' auto-update no
 # -----------------------------------------
 export PATH="$HOME/.tfenv/bin:$PATH"
 export PATH="$PYENV_ROOT/bin:$PATH"
+export PATH="$HOME/Projects/amiqus/dev-scripts:$PATH"
 export PYENV_ROOT="$HOME/.pyenv"
 export TMPDIR="$HOME/.tmp"
 export PROJECTS_DIR=~/Projects
@@ -88,6 +89,12 @@ alias superlint='docker run --rm \
   -e USE_FIND_ALGORITHM=true \
   -v "$(pwd):/tmp/lint" \
   github/super-linter:latest'
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \
+    source "/opt/homebrew/opt/nvm/nvm.sh"
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \
+    source "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
 
 # -----------------------------------------
 # History settings
