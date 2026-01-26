@@ -78,7 +78,7 @@ install_packages() {
     brew update || true
 
     local cli=(
-        awscli bat croc curl espanso fd fzf gh git git-branchless git-delta git-extras gnupg gum
+        ack awscli bat croc curl espanso fd fzf gh git git-branchless git-delta git-extras gnupg gum
         htop httpie jq ncdu lazygit pyenv ripgrep shellcheck starship tfenv
         the_silver_searcher tig tldr tmux tree watch wget zoxide
     )
