@@ -455,6 +455,7 @@ dotfiles_provision_command() {
       ccal
       croc
       curl
+      direnv
       espanso
       fd
       fzf
@@ -508,7 +509,16 @@ dotfiles_provision_command() {
     fi
 
     # Nerd Fonts
-    local fonts=(font-fira-code-nerd-font font-jetbrains-mono-nerd-font font-hack-nerd-font)
+    local fonts=(
+        font-adwaita-mono-nerd-font
+        font-fantasque-sans-mono-nerd-font
+        font-fira-code-nerd-font
+        font-fira-mono-nerd-font
+        font-go-mono-nerd-font
+        font-hack-nerd-font
+        font-jetbrains-mono-nerd-font
+        font-zed-mono-nerd-font
+    )
     for f in "${fonts[@]}"; do brew_install_cask "$f"; done
 
     # fzf shell integration
@@ -558,7 +568,7 @@ EOF
   # Ruby / Terraform / Node / Python
   # =================
   install_nvm() { nvm install "$NODE_VERSION" && nvm use "$NODE_VERSION" || true; }
-  install_pyenv() { pyenv install "$PYTHON_VERSION" && pyenv global "$PYTHON_VERSION" || true
+  install_pyenv() { pyenv install "$PYTHON_VERSION" && pyenv global "$PYTHON_VERSION" || true; }
   install_rbenv() { rbenv install "$RUBY_VERSION" && rbenv global "$RUBY_VERSION" || true; }
   install_tfenv() { tfenv install "$TF_VERSION" && tfenv use "$TF_VERSION" || true; }
 

@@ -89,6 +89,7 @@ install_packages() {
     ccal
     croc
     curl
+    direnv
     espanso
     fd
     fzf
@@ -142,7 +143,16 @@ install_packages() {
   fi
 
   # Nerd Fonts
-  local fonts=(font-fira-code-nerd-font font-jetbrains-mono-nerd-font font-hack-nerd-font)
+  local fonts=(
+      font-adwaita-mono-nerd-font
+      font-fantasque-sans-mono-nerd-font
+      font-fira-code-nerd-font
+      font-fira-mono-nerd-font
+      font-go-mono-nerd-font
+      font-hack-nerd-font
+      font-jetbrains-mono-nerd-font
+      font-zed-mono-nerd-font
+  )
   for f in "${fonts[@]}"; do brew_install_cask "$f"; done
 
   # fzf shell integration
