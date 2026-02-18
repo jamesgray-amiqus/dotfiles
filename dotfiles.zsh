@@ -14,6 +14,7 @@ eval "$(starship init zsh)"
 eval "$(pyenv init --path)"
 eval "$(zoxide init zsh --hook prompt)"   # use prompt hook, not 'complete'
 eval "$(zoxide init zsh)"
+eval "$(direnv hook zsh)"
 
 # -----------------------------------------
 # Zsh completions

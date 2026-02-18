@@ -475,6 +475,7 @@ dotfiles_provision_command() {
       pyenv
       ripgrep
       shellcheck
+      sox
       starship
       tfenv
       the_silver_searcher
@@ -549,6 +550,28 @@ EOF
   }
 
   # =================
+  # SSH
+  # =================
+  configure_ssh() {
+      log "Configuring SSH environment"
+      mkdir -p "$HOME/.ssh/"
+      cat <<EOF >"$HOME/.ssh/config"
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_github
+    AddKeysToAgent yes
+    UseKeychain yes
+EOF
+
+      KEY="$HOME/.ssh/id_github"
+
+      if ! ssh-add -l 2>/dev/null | grep -q "$(ssh-keygen -lf "$KEY" | awk '{print $2}')"; then
+      ssh-add --apple-use-keychain "$KEY"
+      fi
+  }
+
+  # =================
   # iTerm2 config from exported JSON
   # =================
   configure_iterm2() {
@@ -580,6 +603,7 @@ EOF
     ensure_homebrew
     install_packages
     configure_zsh
+    configure_ssh
     configure_iterm2
     install_nvm
     install_pyenv
