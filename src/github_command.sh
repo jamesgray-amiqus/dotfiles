@@ -96,6 +96,7 @@ EOF
   git config --global alias.st status
   git config --global alias.br 'branch --all'
   git config --global alias.lg "log --oneline --graph --all --decorate"
+  git config --global alias.cpbranch '!f() { git checkout $1 -- $2; }; f'
 
   if gh auth status >/dev/null 2>&1; then
     printf "%s\n" "$(gpg --armor --export "$key_id")" | gh gpg-key add - || true
