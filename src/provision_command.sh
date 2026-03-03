@@ -107,6 +107,7 @@ install_packages() {
     ncdu
     nvm
     pyenv
+    openssh
     ripgrep
     shellcheck
     sox
