@@ -68,7 +68,7 @@ alias d='bat -p'
 alias cls="clear"
 alias cp='cp -i'
 alias g='git'
-alias ga='git add .'
+alias ga='git add'
 alias gbf='git branch | fzf --preview "git log -n 5 --color=always {}"'
 alias gcd='git checkout'
 alias gd='git diff'
