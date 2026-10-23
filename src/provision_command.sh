@@ -90,7 +90,6 @@ install_packages() {
     croc
     curl
     direnv
-    espanso
     fd
     fzf
     gh
@@ -107,10 +106,13 @@ install_packages() {
     ncdu
     nvm
     pyenv
+    rbenv
     openssh
     ripgrep
     shellcheck
+    shfmt
     sox
+    sponge
     starship
     tfenv
     the_silver_searcher
@@ -121,6 +123,7 @@ install_packages() {
     watch
     wget
     yamlfmt
+    yq
     zoxide
   )
   for pkg in "${cli[@]}"; do brew_install_formula "$pkg"; done
@@ -128,9 +131,10 @@ install_packages() {
   local apps=(
     1password-cli
     clipy
-    docker
+    docker-desktop
+    espanso
     firefox
-    flux
+    flux-app
     iterm2
     session-manager-plugin
     tomatobar
@@ -207,6 +211,20 @@ EOF
 }
 
 # =================
+# Docker
+# =================
+configure_docker() {
+  log "Configuring Docker credential store"
+  local config="$HOME/.docker/config.json"
+  mkdir -p "$HOME/.docker"
+  [ -f "$config" ] || echo '{}' >"$config"
+  # Docker Desktop defaults to "desktop", which doesn't persist registry logins (e.g. dhi.io)
+  local tmp
+  tmp="$(mktemp)"
+  jq '.credsStore = "osxkeychain"' "$config" >"$tmp" && mv "$tmp" "$config"
+}
+
+# =================
 # iTerm2 config from exported JSON
 # =================
 configure_iterm2() {
@@ -239,6 +257,7 @@ main() {
   install_packages
   configure_zsh
   configure_ssh
+  configure_docker
   configure_iterm2
   install_nvm
   install_pyenv
